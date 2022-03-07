@@ -1,7 +1,7 @@
-# can_reader
+# can_interact
 ## LICENSE
 
-Example of reading from CAN bus using Linux SocketCAN API in C.
+Functionality to easily read and write to CAN bus using Linux SocketCAN API in C (with examples for both).
 Copyright (C) 2022 Salih Ahmed
 
 This library is free software; you can redistribute it and/or

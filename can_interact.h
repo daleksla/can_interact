@@ -1,5 +1,5 @@
-#ifndef CAN_READER_H
-#define CAN_READER_H
+#ifndef CAN_INTERACT_H
+#define CAN_INTERACT_H
 #pragma once
 
 #include <stddef.h>
@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 /**
-  * @brief Library header of can_reader system
+  * @brief Functionality declarations of library code to be used to usefully read and write to CAN bus
   * File in nearly all cases designed and works as independant from any reading specifications etc..
   */
 
@@ -35,4 +35,4 @@ void apply_can_fitler(const unsigned int*, const size_t, const int) ;
   */
 float hex_bytes_to_number(const uint8_t*, const size_t, const bool, const bool) ;
 
-#endif // CAN_READER_H
+#endif // CAN_INTERACT_H

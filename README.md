@@ -1,7 +1,7 @@
-# can_reader
+# can_interact
 # README
 
-Example of reading from CAN bus using Linux SocketCAN API in C.
+Functionality to easily read and write to CAN bus using Linux SocketCAN API in C (with examples for both).
 
 ***
 
