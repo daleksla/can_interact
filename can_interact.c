@@ -62,24 +62,25 @@ void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len
     setsockopt(socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) ;
 }
 
-float hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const bool byte_order, const bool signedness)
+uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum EndianType byte_order)
 {
-    union {
-        uint8_t src[data_len] ;
+    uint32_t result ;
 
-        float dst ;
-    } ulf ;
-
-    for(size_t i = 0 ; i < data_len ; ++i)
+    if(byte_order == LITTLE_ENDIAN_VAL) // little
     {
-        if(byte_order) // little
+        for(size_t i = data_len - 1 ; i >= 0 ; --i)
         {
-            ulf.src[(data_len-1)-i] = payload[i] ;
+            result = result << 8 ;
+            result += payload[i] ;
         }
-        else { // big
-            ulf.src[i] = payload[i] ;
+    }
+    else { // big (normal order)
+        for(size_t i = 0 ; i < data_len ; ++i)
+        {
+            result = result << 8 ;
+            result += payload[i] ;
         }
     }
 
-    return ulf.dst ;
+    return result ;
 }

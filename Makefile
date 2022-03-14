@@ -1,4 +1,4 @@
-CC=gcc
+CC?=gcc
 
 all: lib exes clean
 
