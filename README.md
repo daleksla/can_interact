@@ -5,6 +5,6 @@ Functionality to easily read and write to CAN bus using Linux SocketCAN API in C
 
 ***
 
-Written in C17.
+Written in C89.
 
 See LICENSE for terms of usage.

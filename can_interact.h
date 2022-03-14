@@ -39,4 +39,4 @@ void apply_can_fitler(const unsigned int*, const size_t, const int) ;
   */
 uint32_t hex_bytes_to_number(const uint8_t*, const size_t, const enum EndianType) ;
 
-#endif // CAN_INTERACT_H
+#endif /* CAN_INTERACT_H */

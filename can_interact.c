@@ -1,14 +1,14 @@
-#include <stdio.h> // io
-#include <unistd.h> // syscalls
-#include <stdlib.h> // std c lib
+#include <stdio.h> /* io */
+#include <unistd.h> /* syscalls */
+#include <stdlib.h> /* std c lib */
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <sys/types.h>          /* See NOTES */
+#include <linux/if.h>
+#include <sys/types.h>
 #include <sys/socket.h>
-#include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/fcntl.h>
 #include <linux/can.h>
@@ -24,7 +24,7 @@
 
 int can_socket_init(const char* net_device)
 {
-    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW) ; // creates communication endpoint to a given data source. request for raw network protocol access
+    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW) ; /* creates communication endpoint to a given data source. request for raw network protocol access */
     if(s == -1)
     {
         fprintf(stderr, "Error opening initial socket endpoint\n") ;
@@ -40,7 +40,7 @@ int can_socket_init(const char* net_device)
     addr.can_family = AF_CAN ;
     addr.can_ifindex = ifr.ifr_ifindex ;
 
-    if(bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1) // bind the socket to the CAN Interface
+    if(bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1) /* bind the socket to the CAN Interface */
     {
         fprintf(stderr, "Error binding socket to CAN\n") ;
         abort() ;
@@ -53,10 +53,11 @@ void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len
 {
     struct can_filter filter[filter_id_len] ;
 
-    for(size_t i = 0 ; i < filter_id_len ; ++i)
+    size_t i ;
+    for(i = 0 ; i < filter_id_len ; ++i)
     {
         filter[i].can_id = filter_ids[i] ;
-        filter[i].can_mask = 0x1FFFFFFF ; // every bit must match filter (see https://www.cnblogs.com/shangdawei/p/4716860.html)
+        filter[i].can_mask = 0x1FFFFFFF ; /* every bit must match filter (see https://www.cnblogs.com/shangdawei/p/4716860.html) */
     }
 
     setsockopt(socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) ;
@@ -66,16 +67,17 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
 {
     uint32_t result ;
 
-    if(byte_order == LITTLE_ENDIAN_VAL) // little
+    size_t i ;
+    if(byte_order == LITTLE_ENDIAN_VAL)
     {
-        for(size_t i = data_len - 1 ; i >= 0 ; --i)
+        for(i = data_len - 1 ; i >= 0 ; --i)
         {
             result = result << 8 ;
             result += payload[i] ;
         }
     }
-    else { // big (normal order)
-        for(size_t i = 0 ; i < data_len ; ++i)
+    else { /* big (normal order) */
+        for(i = 0 ; i < data_len ; ++i)
         {
             result = result << 8 ;
             result += payload[i] ;
