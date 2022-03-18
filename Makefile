@@ -1,6 +1,6 @@
 CC?=gcc
 
-all: lib exes clean
+all: lib exes
 
 lib:	
 	@echo "Building can_interact library..."
