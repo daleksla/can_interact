@@ -32,7 +32,7 @@ int can_socket_init(const char* net_device)
     }
 
     struct ifreq ifr ;
-    strcpy(ifr.ifr_name, "vcan0") ;
+    strcpy(ifr.ifr_name, net_device) ;
     ioctl(s, SIOCGIFINDEX, &ifr) ;
 
     struct sockaddr_can addr ;
@@ -68,21 +68,21 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
     uint32_t result ;
 
     size_t i ;
-    if(byte_order == LITTLE_ENDIAN_VAL)
-    {
-        for(i = data_len - 1 ; i >= 0 ; --i)
-        {
-            result = result << 8 ;
-            result += payload[i] ;
-        }
-    }
-    else { /* big (normal order) */
+//    if(byte_order == LITTLE_ENDIAN_VAL)
+//    {
+//        for(i = data_len - 1 ; i >= 0 ; --i)
+//        {
+//            result = result << 8 ;
+//            result += payload[i] ;
+//        }
+//    }
+//    else { /* big (normal order) */
         for(i = 0 ; i < data_len ; ++i)
         {
             result = result << 8 ;
             result += payload[i] ;
         }
-    }
+//    }
 
     return result ;
 }
