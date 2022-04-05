@@ -76,17 +76,10 @@ int main(int argc, char** argv)
     argp_parse(&argp, argc, argv, 0, 0, &arguments) ;
 
     const int s = can_socket_init(arguments.args[0]) ;
-    unsigned int filter_ids[8] = {
-        0x100, /* front_left_dist */
-        0x101, /* front_right* */
-        0x102, /* rear_left* */
-        0x103, /* rear_right* */
-        0x680, /* gps */
+    unsigned int filter_ids[1] = {
         0x683, /* gps accel */
-        0x684, /* gyro */
-        0x685 /* gps_status */
     } ;
-    apply_can_fitler(filter_ids, 8, s) ;
+    apply_can_fitler(filter_ids, 1, s) ;
 
     /* Main functionality */
     while(1)
@@ -102,44 +95,18 @@ int main(int argc, char** argv)
 
         switch(frame.can_id)
         {
-            case 0x680:
-            {
-                fprintf(stdout, "GPS DEVICE MSG:\n") ;
-                fprintf(stdout, "\tLat as single value: %f\n", ((float)hex_bytes_to_number(frame.data, 4, BIG_ENDIAN_VAL) / 10000) * 0.0166667) ;
-                fprintf(stdout, "\tLon as single value: %f\n", ((float)hex_bytes_to_number(frame.data+4, 4, BIG_ENDIAN_VAL) / 10000) * 0.0166667) ;
-                break ;
-            }
             case 0x683:
             {
                 fprintf(stdout, "GPS ACCEL DEVICE MSG:\n") ;
-                fprintf(stdout, "\tLat as single value: %f\n", ((float)hex_bytes_to_number(frame.data, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\tLon as single value: %f\n", ((float)hex_bytes_to_number(frame.data+2, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\tvert as single value: %f\n", ((float)hex_bytes_to_number(frame.data+4, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\ttmp as single value: %f\n", ((float)hex_bytes_to_number(frame.data+6, 2, BIG_ENDIAN_VAL) / 10)) ;
-                break ;
-            }
-            case 0x684:
-            {
-                fprintf(stdout, "GPS GYRO MSG:\n") ;
-                fprintf(stdout, "\tRoll as single value: %f\n", ((float)hex_bytes_to_number(frame.data, 2, BIG_ENDIAN_VAL) / 10)) ;
-                fprintf(stdout, "\tPitch as single value: %f\n", ((float)hex_bytes_to_number(frame.data+2, 2, BIG_ENDIAN_VAL) / 10)) ;
-                fprintf(stdout, "\tYaw as single value: %f\n", ((float)hex_bytes_to_number(frame.data+4, 2, BIG_ENDIAN_VAL) / 10)) ;
-                fprintf(stdout, "\tGyro as single value: %f\n", ((float)hex_bytes_to_number(frame.data+6, 2, BIG_ENDIAN_VAL) / 10)) ;
-                break ;
-            }
-            case 0x685:
-            {
-                fprintf(stdout, "GPS STATUS MSG:\n") ;
-                fprintf(stdout, "\thorizontal dilution as single value: %f\n", ((float)hex_bytes_to_number(frame.data, 2, BIG_ENDIAN_VAL) / 10)) ;
-                fprintf(stdout, "\tfix quality indicator as single value: %f\n", (float)hex_bytes_to_number(frame.data+2, 1, BIG_ENDIAN_VAL)) ;
-                fprintf(stdout, "\tsatellites as single value: %f\n", (float)hex_bytes_to_number(frame.data+3, 1, BIG_ENDIAN_VAL)) ;
-                fprintf(stdout, "\tgps mode as single value: %c\n", (char)hex_bytes_to_number(frame.data+4, 1, BIG_ENDIAN_VAL)) ;
-                fprintf(stdout, "\tgps status as single value: %c\n", (char)hex_bytes_to_number(frame.data+5, 1, BIG_ENDIAN_VAL)) ;
+                fprintf(stdout, "\tLat as single value: %d\n", ((int)hex_bytes_to_number(frame.data, 2, BIG_ENDIAN_VAL) / 1000)) ;
+                fprintf(stdout, "\tLon as single value: %d\n", ((int)hex_bytes_to_number(frame.data+2, 2, BIG_ENDIAN_VAL) / 1000)) ;
+                fprintf(stdout, "\tvert as single value: %d\n", ((int)hex_bytes_to_number(frame.data+4, 2, BIG_ENDIAN_VAL) / 1000)) ;
+                fprintf(stdout, "\ttmp as single value: %d\n", ((int)hex_bytes_to_number(frame.data+6, 2, BIG_ENDIAN_VAL) / 10)) ;
                 break ;
             }
             default:
             {
-                fprintf(stdout, "No messages read at this time\n") ;
+                fprintf(stdout, "WARNING: kernel filtering not set up properly\n") ;
             }
         }
         fprintf(stdout, "\n") ;

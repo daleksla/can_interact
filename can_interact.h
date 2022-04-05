@@ -4,7 +4,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
   * @brief Functionality declarations of library code to be used to usefully read and write to CAN bus
@@ -19,6 +18,7 @@ enum EndianType {
 /**
   * @brief can_socket_init - initialises CAN connection to specific network device via low level syscalls
   * @param const char* - c-string to CAN device name
+  * @return int - non-zero positive integer socket descriptor, -1 unable to open socket, -2 upon failure to bind to given device
   */
 int can_socket_init(const char*) ;
 
