@@ -1,19 +1,18 @@
-#include <stdio.h> /* io */
+#define _DEFAULT_SOURCE
+
 #include <unistd.h> /* syscalls */
-#include <stdlib.h> /* std c lib */
 #include <stddef.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include <linux/if.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/fcntl.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <arpa/inet.h>
+#include <endian.h>
 
 #include "can_interact.h"
 
@@ -27,8 +26,7 @@ int can_socket_init(const char* net_device)
     int s = socket(PF_CAN, SOCK_RAW, CAN_RAW) ; /* creates communication endpoint to a given data source. request for raw network protocol access */
     if(s == -1)
     {
-        fprintf(stderr, "Error opening initial socket endpoint\n") ;
-        abort() ;
+        return -1 ;
     }
 
     struct ifreq ifr ;
@@ -42,8 +40,7 @@ int can_socket_init(const char* net_device)
 
     if(bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1) /* bind the socket to the CAN Interface */
     {
-        fprintf(stderr, "Error binding socket to CAN\n") ;
-        abort() ;
+        return -1 ;
     }
 
     return s ;
@@ -65,23 +62,20 @@ void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len
 
 uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum EndianType byte_order)
 {
-    uint32_t result ;
+    uint32_t result = 0 ;
 
     size_t i ;
+    for(i = 0 ; i < data_len ; ++i)
+    {
+        ((uint8_t*)(&result))[i] = payload[i] ;
+    }
+
     if(byte_order == LITTLE_ENDIAN_VAL)
     {
-        for(i = data_len - 1 ; i >= 0 ; --i)
-        {
-            result = result << 8 ;
-            result += payload[i] ;
-        }
+        result = le32toh(result) ;
     }
     else { /* big (normal order) */
-        for(i = 0 ; i < data_len ; ++i)
-        {
-            result = result << 8 ;
-            result += payload[i] ;
-        }
+        result = be32toh(result) ;
     }
 
     return result ;
