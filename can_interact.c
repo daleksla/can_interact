@@ -63,13 +63,14 @@ void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len
 uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum EndianType byte_order)
 {
     uint32_t result = 0 ;
+    uint8_t* blocks = (uint8_t*)(&result) ;
 
     size_t i ;
     if(byte_order == LITTLE_ENDIAN_VAL)
     {
         for(i = 0 ; i < data_len ; ++i)
         {
-            ((uint8_t*)(&result))[i] = payload[i] ;
+            blocks[i] = payload[i] ;
         }
         result = le32toh(result) ;
     }
@@ -77,7 +78,7 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
     {
         for(i = 0 ; i < data_len ; ++i)
         {
-            ((uint8_t*)(&result))[data_len-i-1] = payload[i] ;
+            blocks[4-data_len+i] = payload[i] ;
         }
         result = be32toh(result) ;
     }
