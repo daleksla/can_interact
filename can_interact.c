@@ -71,6 +71,7 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
         {
             ((uint8_t*)(&result))[i] = payload[i] ;
         }
+        result = le32toh(result) ;
     }
     else if(byte_order == BIG_ENDIAN_VAL)
     {
@@ -78,9 +79,8 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
         {
             ((uint8_t*)(&result))[data_len-i-1] = payload[i] ;
         }
+        result = be32toh(result) ;
     }
-
-    result = le32toh(result) ;
 
     return result ;
 }
