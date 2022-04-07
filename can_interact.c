@@ -65,18 +65,22 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
     uint32_t result = 0 ;
 
     size_t i ;
-    for(i = 0 ; i < data_len ; ++i)
-    {
-        ((uint8_t*)(&result))[i] = payload[i] ;
-    }
-
     if(byte_order == LITTLE_ENDIAN_VAL)
     {
-        result = le32toh(result) ;
+        for(i = 0 ; i < data_len ; ++i)
+        {
+            ((uint8_t*)(&result))[i] = payload[i] ;
+        }
     }
-    else { /* big (normal order) */
-        result = be32toh(result) ;
+    else if(byte_order == BIG_ENDIAN_VAL)
+    {
+        for(i = 0 ; i < data_len ; ++i)
+        {
+            ((uint8_t*)(&result))[data_len-i-1] = payload[i] ;
+        }
     }
+
+    result = le32toh(result) ;
 
     return result ;
 }
