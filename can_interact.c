@@ -60,10 +60,10 @@ void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len
     setsockopt(socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) ;
 }
 
-uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum EndianType byte_order)
+uint64_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum EndianType byte_order)
 {
-    uint32_t result = 0 ; /* [0,0,0,0] */
-    uint8_t* blocks = (uint8_t*)(&result) ; /* array of 4 */
+    uint64_t result = 0 ; /* [0,0,0,0,0,0,0,0] */
+    uint8_t* blocks = (uint8_t*)(&result) ; /* array of 8 */
 
     size_t i ;
     if(byte_order == LITTLE_ENDIAN_VAL)
@@ -72,17 +72,17 @@ uint32_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, cons
         {
             blocks[i] = payload[i] ;
         }
-        /* if data_len is two, then [i,i+1,0,0] */
-        result = le32toh(result) ; /* little endian->host byte order */
+        /* if data_len is two, then [i,i+1,0,0,0,0,0,0] */
+        result = le64toh(result) ; /* little endian->host byte order */
     }
     else if(byte_order == BIG_ENDIAN_VAL)
     {
         for(i = 0 ; i < data_len ; ++i)
         {
-            blocks[4-data_len+i] = payload[i] ;
+            blocks[8-data_len+i] = payload[i] ;
         }
         /* if data_len is two, then [0,0,i,i+1] */
-        result = be32toh(result) ; /* big endian->host byte order */
+        result = be64toh(result) ; /* big endian->host byte order */
     }
 
     return result ;

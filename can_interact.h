@@ -10,6 +10,10 @@
   * File in nearly all cases designed and works as independant from any reading specifications etc..
   */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 enum EndianType {
     BIG_ENDIAN_VAL = 0,
     LITTLE_ENDIAN_VAL
@@ -33,10 +37,14 @@ void apply_can_fitler(const unsigned int*, const size_t, const int) ;
 /**
   * @brief hex_bytes_to_number - converts array of length x containing hex bytes into a float
   * @param const uint8_t* - const array of hex bytes
-  * @param const size_t - length of hex bytes array
+  * @param const size_t - length of hex bytes array (undefined behaviour is exceeding 8)
   * @param const enum EndianType - endianess. LITTLE_ENDIAN_VAL is little, BIG_ENDIAN_VAL is big
-  * @return uint32_t - interpretted unsigned int from hex bytes, taking other params into account
+  * @return uint64_t - interpretted value as unsigned int from hex bytes, taking other params into account
   */
-uint32_t hex_bytes_to_number(const uint8_t*, const size_t, const enum EndianType) ;
+uint64_t hex_bytes_to_number(const uint8_t*, const size_t, const enum EndianType) ;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* CAN_INTERACT_H */

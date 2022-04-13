@@ -8,7 +8,7 @@ lib:
 
 exes:
 	@echo "Building and linking can_reader example..."
-	$(CC) -g can_interact.o can_reader.c -o can_reader
+	$(CC) -g can_interact.o can_reader.c -o can_reader.o
 
 clean:
 	@echo "Deleting" *.o
