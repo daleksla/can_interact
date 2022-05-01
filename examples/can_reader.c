@@ -1,5 +1,6 @@
 #include <stdio.h> /* io */
 #include <unistd.h> /* syscalls */
+#include <stdlib.h>
 
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -16,8 +17,8 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers" /* Below is some argp stuff. I'm ignoring some of the 'errors' */
 #pragma GCC diagnostic push
 
-    static char args_doc[] = "NET_DEVICE_NAME" ; /* description of non-option specified command line arguments */
-    static char doc[] = "can_reader -- reads FSAI device messages from specified CAN device" ; /* general program documentation */
+    static char args_doc[] = "NET_DEVICE_NAME FRAME_ID" ; /* description of non-option specified command line arguments */
+    static char doc[] = "can_reader -- reads frame from CAN device with a specific ID" ; /* general program documentation */
     const char* argp_program_bug_address = "salih.msa@outlook.com" ;
     static struct argp_option options[] = {
         {0}
@@ -26,7 +27,7 @@
         /**
           * @brief struct arguments - this structure is used to communicate with parse_opt (for it to store the values it parses within it)
           */
-        char* args[1] ;  /* args for params */
+        char* args[3] ;  /* args for params */
     } ;
 
     /**
@@ -43,14 +44,14 @@
         switch (key)
         {
             case ARGP_KEY_ARG:
-                if(state->arg_num >= 1)
+                if(state->arg_num >= 2)
                 {
                     argp_usage(state);
                 }
                 arguments->args[state->arg_num] = arg;
                 break;
             case ARGP_KEY_END:
-                if (state->arg_num < 1)
+                if (state->arg_num < 2)
                 {
                     argp_usage(state);
                 }
@@ -60,8 +61,6 @@
         }
         return 0 ;
     }
-
-#pragma GCC diagnostic pop /* end of argp, so end of repressing weird messages */
 
 int main(int argc, char** argv)
 {
@@ -76,41 +75,35 @@ int main(int argc, char** argv)
     argp_parse(&argp, argc, argv, 0, 0, &arguments) ;
 
     const int s = can_socket_init(arguments.args[0]) ;
+
+    int frame_id = strtol(arguments.args[1], NULL, 0) ;
     unsigned int filter_ids[1] = {
-        0x683, /* gps accel */
+        frame_id, /* gps accel */
     } ;
     apply_can_fitler(filter_ids, 1, s) ;
 
     /* Main functionality */
-    while(1)
+    struct can_frame frame ; int status = get_can_frame(&frame, s) ;
+    if(status != 0)
     {
-        struct can_frame frame ;
-        int nbytes = read(s, &frame, sizeof(struct can_frame)) ;
-
-        if(nbytes < 0)
-        {
-            fprintf(stderr, "Error reading from CAN\n") ;
-            return 3 ;
-        }
-
-        switch(frame.can_id)
-        {
-            case 0x683:
-            {
-                fprintf(stdout, "GPS ACCEL DEVICE MSG:\n") ;
-                fprintf(stdout, "\tLat as single value: %d\n", ((int)hex_bytes_to_number(frame.data, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\tLon as single value: %d\n", ((int)hex_bytes_to_number(frame.data+2, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\tvert as single value: %d\n", ((int)hex_bytes_to_number(frame.data+4, 2, BIG_ENDIAN_VAL) / 1000)) ;
-                fprintf(stdout, "\ttmp as single value: %d\n", ((int)hex_bytes_to_number(frame.data+6, 2, BIG_ENDIAN_VAL) / 10)) ;
-                break ;
-            }
-            default:
-            {
-                fprintf(stdout, "WARNING: kernel filtering not set up properly\n") ;
-            }
-        }
-        fprintf(stdout, "\n") ;
+        fprintf(stderr, "Error reading from CAN bus\n") ;
+        abort() ;
     }
+
+    switch(frame.can_id)
+    {
+        case 0x100:
+        {
+            uint64_t val = hex_bytes_to_number(frame.data, frame.can_dlc, BIG_ENDIAN_VAL) ;
+            fprintf(stdout, "val read from frame with id 0x%x: %lu", frame_id, val) ;
+            break ;
+        }
+        default:
+        {
+            fprintf(stdout, "WARNING: kernel filtering not set up properly\n") ;
+        }
+    }
+    fprintf(stdout, "\n") ;
 
     /* E(nd)O(f)P(rogram) */
     close(s) ;
