@@ -15,8 +15,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 enum EndianType {
+    /**
+     * @brief enum EndianType - provided to easily dictate whether a value is big or little in terms of endian formatting
+     * input: (BIG/LITTLE)_ENDIAN_VAL
+     */
     BIG_ENDIAN_VAL = 0,
     LITTLE_ENDIAN_VAL
+} ;
+
+enum SignedType {
+    /**
+     * @brief enum SignedType - provided to easily dictate whether a value provided is signed or unsigned
+     * input: (UNSIGNED/SIGNED)_VAL
+     */
+    UNSIGNED_VAL = 0,
+    SIGNED_VAL
 } ;
 
 /**
@@ -46,19 +59,21 @@ int get_can_frame(struct can_frame*, const int) ;
  * @brief hex_bytes_to_number - converts array of length x containing hex bytes into a uint64
  * @param const uint8_t* - const array of hex bytes
  * @param const size_t - length of hex bytes array (undefined behaviour is exceeding 8)
+ * @param const enum SignedType - whether the bytes are storing a signed value or not. SIGNED_VAL indicates signed, UNSIGNED_VAL indicates unsigned
  * @param const enum EndianType - endianess. LITTLE_ENDIAN_VAL is little, BIG_ENDIAN_VAL is big
  * @return uint64_t - interpretted value as unsigned int from hex bytes, taking other params into account
  */
-uint64_t hex_bytes_to_number(const uint8_t*, const size_t, const enum EndianType) ;
+uint64_t hex_bytes_to_number(const uint8_t*, const size_t, const enum SignedType, const enum EndianType) ;
 
 /**
  * @brief number_to_hex_bytes - converts a uint64 number to an array of hex bytes
  * @param const uint64_t - interpretted value as unsigned int from hex bytes, taking other params into account
  * @param uint8_t* - array destination of hex bytes (space needed = 8 bytes)
+ * @param const enum SignedType - whether the bytes are storing a signed value or not. SIGNED_VAL indicates signed, UNSIGNED_VAL indicates unsigned
  * @param const enum EndianType - endianess. LITTLE_ENDIAN_VAL is little, BIG_ENDIAN_VAL is big
  * @return size_t - number of destination array elements actually used
  */
-size_t number_to_hex_bytes(const uint64_t, uint8_t*, const enum EndianType) ;
+size_t number_to_hex_bytes(const uint64_t, uint8_t*, const enum SignedType, const enum EndianType) ;
 
 /**
  * @brief create_can_frame - initialises can frame using provided data to fill out properties

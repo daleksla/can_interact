@@ -78,9 +78,9 @@ int main(int argc, char** argv)
     const int s = can_socket_init(arguments.args[0]) ;
 
     /* Main functionality */
-    uint64_t value = (uint64_t)strtol(arguments.args[2], NULL, 0) ;
+    int64_t value = (int64_t)strtol(arguments.args[2], NULL, 0) ;
     uint8_t bytes[8] = {0} ;
-    const size_t bytes_used = number_to_hex_bytes(value, bytes, BIG_ENDIAN_VAL) ;
+    const size_t bytes_used = number_to_hex_bytes(value, bytes, SIGNED_VAL, LITTLE_ENDIAN_VAL) ;
 
     int frame_id = strtol(arguments.args[1], NULL, 0) ;
     struct can_frame frame ; create_can_frame(frame_id, bytes, bytes_used, &frame) ;
@@ -88,7 +88,10 @@ int main(int argc, char** argv)
     int status = send_can_frame(&frame, s) ;
     if(status != 0)
     {
-        fprintf(stderr, "Error writing value %lu in frame with id 0x%x to %s", value, frame_id, arguments.args[0]) ;
+        fprintf(stderr, "Error writing value %ld in frame with id 0x%x to %s\n", value, frame_id, arguments.args[0]) ;
+    }
+    else {
+        fprintf(stdout, "Successfully sent value %ld in frame with id 0x%x to %s\n", value, frame_id, arguments.args[0]) ;
     }
 
     /* E(nd)O(f)P(rogram) */
