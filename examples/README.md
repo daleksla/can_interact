@@ -18,7 +18,7 @@ Steps:
 1. A call to `can_socket_init(<arg0>)` is made to create a descriptor to the CAN socket
 2. `number_to_hex_bytes(<arg3 as num>, <uint8_t array of len 8>, BIG_ENDIAN_VAL)` is called
   * Note: arg 3 is an enum stating the endian ordering desired for the array of bytes storing the provided number - in this case we want it as a big endian value
-  * It returns a number regarding the number of bytes used to store the hex values. This can be ignored
+  * It returns the number regarding the number of bytes used to store the hex values. THIS MUST BE USED due to placing of sign flag etc.
 3. A `can_frame` struct is declared and `create_can_frame(<arg1 as num>, <uint8_t array of len 8>, <number of bytes from above or 8>, <pointer to can_frame struct>)` initialises it
 4. `send_can_frame(<pointer to can_frame variable>, <socket des>)` is used to then publish the can frame to the socket descriptor
 
@@ -43,10 +43,19 @@ Building requires use of GNU `make` utility - run `make examples`.
 
 ### Running
 
-First, open a connection to a CAN device. I opened mine using `sudo --stdin ip link set can0 up type can bitrate 1000000`
+First, open a connection to a CAN device
+> I opened mine using `sudo --stdin ip link set can0 up type can bitrate 1000000`
+* I'm fairly certain a VCAN would work fine.
+> Install and use `can-utils` library, it's honestly great
 
 Then open 2 terminal windows.
 * In terminal 1, run `can_reader.o can0 0x100` - it'll stall till a value is provided
 * In terminal 2, run `can_writer.o can0 0x100 100`
 
 Upon running the command in the second terminal, the `can_reader.o` should print 100 and quit.
+
+Experiment:
+* Do it again, sending all sorts of different numbers
+* Modify the source codes to change the endianness, recompile and do it again
+
+Any issues, don't hesistate to open an issue. I'll fix it when I can or make a pull request and I'll check it

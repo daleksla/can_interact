@@ -94,8 +94,8 @@ int main(int argc, char** argv)
     {
         case 0x100:
         {
-            uint64_t val = hex_bytes_to_number(frame.data, frame.can_dlc, BIG_ENDIAN_VAL) ;
-            fprintf(stdout, "val read from frame with id 0x%x: %lu", frame_id, val) ;
+            int64_t val = (int64_t)hex_bytes_to_number(frame.data, frame.can_dlc, SIGNED_VAL, LITTLE_ENDIAN_VAL) ;
+            fprintf(stdout, "val read from frame with id 0x%x: %ld\n", frame_id, val) ;
             break ;
         }
         default:
@@ -103,7 +103,6 @@ int main(int argc, char** argv)
             fprintf(stdout, "WARNING: kernel filtering not set up properly\n") ;
         }
     }
-    fprintf(stdout, "\n") ;
 
     /* E(nd)O(f)P(rogram) */
     close(s) ;
