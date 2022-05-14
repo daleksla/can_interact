@@ -76,32 +76,29 @@ int main(int argc, char** argv)
 
     const int s = can_socket_init(arguments.args[0]) ;
 
-    int frame_id = strtol(arguments.args[1], NULL, 0) ;
+    const int frame_id = strtol(arguments.args[1], NULL, 0) ;
     unsigned int filter_ids[1] = {
         frame_id, /* gps accel */
     } ;
     apply_can_fitler(filter_ids, 1, s) ;
 
     /* Main functionality */
-    struct can_frame frame ; int status = get_can_frame(&frame, s) ;
+    fprintf(stdout, "attempted read from frame 0x%x from can device %s\n", frame_id, arguments.args[0]) ;
+
+    struct can_frame frame ; const int status = get_can_frame(&frame, s) ;
     if(status != 0)
     {
         fprintf(stderr, "Error reading from CAN bus\n") ;
         abort() ;
     }
 
-    switch(frame.can_id)
+    if(frame.can_id == frame_id)
     {
-        case 0x100:
-        {
-            int64_t val = (int64_t)hex_bytes_to_number(frame.data, frame.can_dlc, SIGNED_VAL, LITTLE_ENDIAN_VAL) ;
-            fprintf(stdout, "val read from frame with id 0x%x: %ld\n", frame_id, val) ;
-            break ;
-        }
-        default:
-        {
-            fprintf(stdout, "WARNING: kernel filtering not set up properly\n") ;
-        }
+        int64_t val = (int64_t)hex_bytes_to_number(frame.data, frame.can_dlc, SIGNED_VAL, BIG_ENDIAN_VAL) ;
+        fprintf(stdout, "val read from frame with id 0x%x: %ld\n", frame_id, val) ;
+    }
+    else {
+        fprintf(stderr, "Warning: kernel filtering not setup\n") ;
     }
 
     /* E(nd)O(f)P(rogram) */

@@ -80,7 +80,7 @@ int main(int argc, char** argv)
     /* Main functionality */
     int64_t value = (int64_t)strtol(arguments.args[2], NULL, 0) ;
     uint8_t bytes[8] = {0} ;
-    const size_t bytes_used = number_to_hex_bytes(value, bytes, SIGNED_VAL, LITTLE_ENDIAN_VAL) ;
+    const size_t bytes_used = number_to_hex_bytes(value, bytes, SIGNED_VAL, BIG_ENDIAN_VAL) ;
 
     int frame_id = strtol(arguments.args[1], NULL, 0) ;
     struct can_frame frame ; create_can_frame(frame_id, bytes, bytes_used, &frame) ;
