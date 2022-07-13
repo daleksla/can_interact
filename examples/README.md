@@ -15,12 +15,10 @@ Takes 3 command line arguments:
 3. the data to write (e.g. 100)
 
 Steps:
-1. A call to `can_socket_init(<arg0>)` is made to create a descriptor to the CAN socket
-2. `number_to_hex_bytes(<arg3 as num>, <uint8_t array of len 8>, SIGNED_VAL, LITTLE_ENDIAN_VAL)` is called
-  * Note: arg 4 is an enum stating the endian ordering desired for the array of bytes storing the provided number - in this case we want it as a little endian value
-  * It returns the number regarding the number of bytes used to store the hex values. THIS MUST BE USED due to placing of sign flag etc.
-3. A `can_frame` struct is declared and `create_can_frame(<arg1 as num>, <uint8_t array of len 8>, <number of bytes from above or 8>, <pointer to can_frame struct>)` initialises it
-4. `send_can_frame(<pointer to can_frame variable>, <socket des>)` is used to then publish the can frame to the socket descriptor
+1. A call to `can_interact_init` is made to create a descriptor to the CAN socket
+2. `can_interact_encode` is called to convert the cmd-line argument into a specific endianness for transport
+3. A `can_frame` struct is declared and `can_interact_make_frame` initialises it
+4. `can_interact_send_frame` is used to then publish the can frame to the socket descriptor
 
 #### can_reader
 
@@ -29,12 +27,10 @@ Takes 2 command line arguments:
 2. the hex id of the frame to read (e.g. 0x100)
 
 Steps:
-1. A call to `can_socket_init(arg0)` is made to create a descriptor to the CAN socket
-2. A call to `apply_can_fitler(<array of hex ids, one being arg1>, <socket>)` sets up kernel level filtering
-3. A `can_frame` struct is declared and `get_can_frame(<pointer to can_frame variable>, <socket>)` gets data and sets it
-4. `hex_bytes_to_number(<uint8_t array of len 8>, <data len>, SIGNED_VAL, ELITTLE_ENDIAN_VAL)` is called
-  * Note: arg 4 is an enum stating the endian ordering desired for the array of bytes storing the provided number - in this case we want it as a little endian value
-  * It returns a number which is the assembled bytes
+1. A call to `can_interact_init` is made to create a descriptor to the CAN socket
+2. A call to `can_interact_filter` sets up kernel level filtering
+3. A `can_frame` struct is declared and `can_interact_get_frame` gets data and sets its values
+4. `can_interact_decode` is called to get the incoming bytes and format them for the target device
 5. Prints value fetched
 
 ### Building
@@ -45,7 +41,7 @@ Building requires use of GNU `make` utility - run `make examples`.
 
 First, open a connection to a CAN device
 > I opened mine using `sudo --stdin ip link set can0 up type can bitrate 1000000`
-* I'm fairly certain a VCAN would work fine.
+* VCAN would work fine.
 > Install and use `can-utils` library, it's honestly great
 
 Then open 2 terminal windows.

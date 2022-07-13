@@ -75,21 +75,21 @@ int main(int argc, char** argv)
 	int s;
 	uint8_t bytes[8] = {0};
 	uint8_t bytes_used;
-	int frame_id;
+	long int frame_id;
 	struct can_frame frame;
 
 	/* Main functionality */
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 	can_interact_init(&s, arguments.args[0]);
-	bytes_used = can_interact_encode((uint64_t)value, bytes, DATA_TYPE_SIGNED, ENDIAN_BIG);
+	bytes_used = can_interact_encode((uint64_t)strtol(arguments.args[2], NULL, 0), bytes, DATA_TYPE_SIGNED, ENDIAN_BIG);
 
 	frame_id = (int64_t)strtol(arguments.args[1], NULL, 0);
-	can_interact_make_frame(strtol(arguments.args[1], NULL, 0), bytes, bytes_used, &frame);
+	can_interact_make_frame((canid_t)strtol(arguments.args[1], NULL, 0), bytes, bytes_used, &frame);
 
 	if (can_interact_send_frame(&frame, &s) != 0) {
-		fprintf(stderr, "Error writing value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), frame_id, arguments.args[0]);
+		fprintf(stderr, "Error writing value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), (unsigned int)frame_id, arguments.args[0]);
 	} else {
-		fprintf(stdout, "Successfully sent value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), frame_id, arguments.args[0]);
+		fprintf(stdout, "Successfully sent value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), (unsigned int)frame_id, arguments.args[0]);
 	}
 
 	/* E(nd)O(f)P(rogram) */

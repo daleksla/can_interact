@@ -5,7 +5,6 @@ all: lib examples
 lib:
 	@echo "Building can_interact library..."
 	$(CC) -c can_interact.c -o can_interact.o
-	$(CC) -I ./ can_interact.o examples/tmp.c -o examples/tmp.o
 
 examples: lib example_can_reader example_can_writer
 	@echo "Building and linking examples using can_interact library..."
