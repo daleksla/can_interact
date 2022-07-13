@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <endian.h>
 
 #include <linux/if.h>
 #include <sys/types.h>
@@ -13,169 +15,115 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <arpa/inet.h>
-#include <endian.h>
 
 #include "can_interact.h"
 
+#define BYTE_MAX_LENGTH sizeof(uint64_t) / sizeof(uint8_t)
+
 /**
-  * @brief Functionality definitions of library code to be used to usefully read and write to CAN bus
-  * File in nearly all cases designed and works as independant from any reading specifications etc..
-  */
+ * @brief Functionality definitions of library code to be used to usefully read and write to CAN bus
+ * File in nearly all cases designed and works as independant from any reading specifications etc..
+ */
 
-int can_socket_init(const char* net_device)
+int can_interact_init(int *s, const char *net_device)
 {
-    int s = socket(PF_CAN, SOCK_RAW, CAN_RAW) ; /* creates communication endpoint to a given data source. request for raw network protocol access */
-    if(s == -1)
-    {
-        return -1 ;
-    }
+	struct ifreq ifr; /* used to configure net device */
+	struct sockaddr_can addr; /* assigns address connections */
 
-    struct ifreq ifr ;
-    strcpy(ifr.ifr_name, net_device) ;
-    ioctl(s, SIOCGIFINDEX, &ifr) ;
+	*s = socket(PF_CAN, SOCK_RAW, CAN_RAW); /* creates communication endpoint to a given data source. request for raw network protocol access */
+	if(*s == -1) {
+		return 1;
+	}
+	strcpy(ifr.ifr_name, net_device); /* copy name */
+	ioctl(*s, SIOCGIFINDEX, &ifr); /*  manipulates the underlying device parameters of special files */
+	memset(&addr, '\0', sizeof(addr)); /* clear existing struct */
+	addr.can_family = AF_CAN;
+	addr.can_ifindex = ifr.ifr_ifindex;
+	if(bind(*s, (struct sockaddr*)&addr, sizeof(addr)) == -1) { /* bind the socket to the CAN Interface */
+		return 2;
+	}
 
-    struct sockaddr_can addr ;
-    memset(&addr, '\0', sizeof(addr)) ;
-    addr.can_family = AF_CAN ;
-    addr.can_ifindex = ifr.ifr_ifindex ;
-
-    if(bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1) /* bind the socket to the CAN Interface */
-    {
-        return -1 ;
-    }
-
-    return s ;
+	return 0;
 }
 
-void apply_can_fitler(const unsigned int* filter_ids, const size_t filter_id_len, const int socket)
+int can_interact_filter(const unsigned int *filter_ids, const size_t filter_id_len, const int *socket)
 {
-    struct can_filter filter[filter_id_len] ;
+	struct can_filter *filters = alloca(sizeof(struct can_filter) * filter_id_len);
+	size_t i;
 
-    size_t i ;
-    for(i = 0 ; i < filter_id_len ; ++i)
-    {
-        filter[i].can_id = filter_ids[i] ;
-        filter[i].can_mask = 0x1FFFFFFF ; /* every bit must match filter (see https://www.cnblogs.com/shangdawei/p/4716860.html) */
-    }
-
-    setsockopt(socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) ;
+	for(i = 0; i < filter_id_len; ++i) {
+		filters[i].can_id = filter_ids[i];
+		filters[i].can_mask = 0x1FFFFFFF; /* every bit must match filter (see https://www.cnblogs.com/shangdawei/p/4716860.html) */
+	}
+	return setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filters, sizeof(filters));
 }
 
-int get_can_frame(struct can_frame* can_frame, const int socket)
+int can_interact_get_frame(struct can_frame* can_frame, const int *socket)
 {
-    const int nbytes = read(socket, can_frame, sizeof(struct can_frame)) ;
-    return nbytes <= 0 ? 1 : 0 ; /* 0 = success, 1 = no data reading from CAN */
+	const ssize_t nbytes = read(*socket, can_frame, sizeof(struct can_frame));
+	return nbytes <= 0 ? 1 : 0; /* 0 = success, 1 = no data reading from CAN */
 }
 
-uint64_t hex_bytes_to_number(const uint8_t* payload, const size_t data_len, const enum SignedType is_signed, const enum EndianType byte_order)
+uint64_t can_interact_decode(const uint8_t *payload, const uint8_t data_len, const enum can_interact_data_type is_signed, const enum can_interact_endianness byte_order)
 {
-    uint64_t result = 0 ; /* [0,0,0,0,0,0,0,0] */
-    uint8_t* blocks = (uint8_t*)(&result) ; /* array of 8 */
+	uint64_t result; /* [0,0,0,0,0,0,0,0] */
+	uint8_t* blocks; /* array of 8 */
+	result = 0;
+	blocks = (uint8_t*)(&result);
 
-    size_t i ;
-    if(byte_order == LITTLE_ENDIAN_VAL)
-    {
-        for(i = 0 ; i < (is_signed ? data_len - 1 : data_len) ; ++i)
-        {
-            blocks[i] = payload[i] ;
-        }
-        /* if data_len is two and unsigned, then [i,i+1,0,0,0,0,0,0]
-         * if data_len is two and signed, then [i,0,0,0,0,0,0,i+1] */
-        blocks[7] = is_signed ? payload[data_len - 1] : blocks[7] ; /* if data is signed, use last byte which will be MSB in little endian
-                                                               assign that to end of MSB (assuming little endian again) of 64 byte num */
-        result = le64toh(result) ; /* little endian->host byte order */
-    }
-    else if(byte_order == BIG_ENDIAN_VAL)
-    {
-        for(i = (is_signed ? 1 : 0) ; i < data_len ; ++i)
-        {
-            blocks[8 - data_len + i] = payload[i] ;
-        }
-        /* if data_len is two, then [0,0,i,i+1] */
-        blocks[0] = is_signed ? payload[0] : blocks[0] ; /* if data is signed, use first byte which will be MSB in big endian
-                                                    assign that to start of MSB (assuming big endian again) of 64 byte num */
-        result = be64toh(result) ; /* big endian->host byte order */
-    }
+	if (byte_order == ENDIAN_LITTLE) {
+		memcpy(blocks, payload, data_len); /* copy data to start of number */
+		if (is_signed && ((const int8_t*)payload)[data_len - 1] < 0) {
+			memset(blocks + data_len, 0xFF, BYTE_MAX_LENGTH - data_len);
+		}
+		result = le64toh(result);
+	} else if (byte_order == ENDIAN_BIG) {
+		memcpy(blocks + (BYTE_MAX_LENGTH - data_len), payload, data_len); /* copy number from end - data_len */
+		if (is_signed && ((const int8_t*)payload)[0] < 0) {
+			memset(blocks, 0xFF, BYTE_MAX_LENGTH - data_len);
+		}
+		result = be64toh(result);
+	} else { /* float */
+		/* process float */
+	}
 
-    return result ;
+	return result;
 }
 
-size_t number_to_hex_bytes(const uint64_t host_number, uint8_t* dest_array, const enum SignedType is_signed, const enum EndianType byte_order)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic push
+uint8_t can_interact_encode(const uint64_t host_number, uint8_t* dest_array, const enum can_interact_data_type is_signed, const enum can_interact_endianness byte_order)
 {
-    const size_t TOTAL_LENGTH = 8 ;
-    memset(dest_array, 0, TOTAL_LENGTH) ; /* initialise array elements with value 0 */
+	uint64_t host_cpy ;
+	
+	if (byte_order == ENDIAN_LITTLE) {
+		host_cpy = htole64(host_number); 
+	} else if(byte_order == ENDIAN_BIG) {
+		host_cpy = htobe64(host_number); 
+	} else { /* float */
+		/* process float */
+	}
 
-    /* determine endianess of number provided by system : 0 for big endian, 1 for little endian */
-    volatile uint16_t value = 0x4567 ;
+	memcpy(dest_array, (uint8_t*)&host_cpy, BYTE_MAX_LENGTH);
 
-    int earliest_consis_zero = -1 ;
-    size_t i ;
+	return BYTE_MAX_LENGTH; /* for now, always just fill buffer */
+}
+#pragma GCC diagnostic pop
 
-    if(byte_order == LITTLE_ENDIAN_VAL)
-    {
-        const uint64_t le_val = htole64(host_number) ; /* convert number first from host order->little endian */
-        uint8_t* blocks = (uint8_t*)(&le_val) ; /* array of 8 */
+int can_interact_make_frame(const canid_t desired_id, const uint8_t* bytes, const uint8_t byte_len, struct can_frame* can_frame)
+{
+	if (byte_len > 8) {
+		return 1;
+	}
 
-        for(i = 0 ; i < (is_signed ? TOTAL_LENGTH - 1 : TOTAL_LENGTH) ; ++i)
-        {
-            dest_array[i] = blocks[i] ;
+	can_frame->can_id = desired_id;
+	can_frame->can_dlc = byte_len;
+	memcpy(can_frame->data, bytes, byte_len);
 
-            if(dest_array[i] == 0) /* if the current byte is 0 */
-            {
-                if(earliest_consis_zero == -1)
-                {
-                    earliest_consis_zero = i ;
-                }
-            }
-            else {
-                earliest_consis_zero = -1 ;
-            }
-        }
-
-        if(is_signed)
-        {
-             dest_array[earliest_consis_zero != -1 ? earliest_consis_zero++ : TOTAL_LENGTH - 1] = \
-                blocks[TOTAL_LENGTH - 1] ;
-        }
-    }
-    else if(byte_order == BIG_ENDIAN_VAL)
-    {
-        const uint64_t be_val = htobe64(host_number) ; /* convert number first from host order->big endian */
-        uint8_t* blocks = (uint8_t*)(&be_val) ; /* array of 8 */
-
-        if(is_signed)
-        {
-             dest_array[0] = blocks[0] ;
-        }
-
-        for(i = (is_signed ? 1 : 0) ; i < TOTAL_LENGTH ; ++i)
-        {
-            dest_array[i] = blocks[i] ;
-
-            if(dest_array[i] == 0) /* if the current byte is 0 */
-            {
-                if(earliest_consis_zero == -1)
-                {
-                    earliest_consis_zero = i ;
-                }
-            }
-            else {
-                earliest_consis_zero = -1 ;
-            }
-        }
-    }
-
-    return earliest_consis_zero == -1 ? TOTAL_LENGTH : earliest_consis_zero ;
+	return 0 ;
 }
 
-void create_can_frame(const canid_t desired_id, const uint8_t* bytes, const size_t byte_len, struct can_frame* can_frame)
+int can_interact_send_frame(const struct can_frame* can_frame, const int* socket)
 {
-    can_frame->can_id = desired_id ;
-    can_frame->can_dlc = byte_len ;
-    memcpy(can_frame->data, bytes, byte_len) ;
-}
-
-int send_can_frame(const struct can_frame* can_frame, const int socket)
-{
-    return (write(socket, can_frame, sizeof(struct can_frame)) != sizeof(struct can_frame)) ; /* 0 = success, 1 = no data reading from CAN */
+	return (write(*socket, can_frame, sizeof(struct can_frame)) != sizeof(struct can_frame)); /* 0 = success, 1 = no data reading from CAN */
 }
