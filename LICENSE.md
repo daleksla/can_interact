@@ -1,7 +1,8 @@
 # can_interact
 ## LICENSE
 
-Functionality to easily read and write to CAN bus using Linux SocketCAN API in C (with examples for both).
+Functionality to easily read and write to CAN bus in C/C++
+
 Copyright (C) 2022 Salih Ahmed
 
 This library is free software; you can redistribute it and/or

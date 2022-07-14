@@ -1,7 +1,7 @@
 # can_interact
 ## README
 
-Functionality to easily read and write to CAN bus using Linux SocketCAN API in C.
+Functionality to easily read and write to CAN bus in C/C++
 
 ### Building
 
