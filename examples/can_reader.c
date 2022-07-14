@@ -26,7 +26,7 @@ struct arguments {
 /**
  * @brief struct arguments - this structure is used to communicate with parse_opt (for it to store the values it parses within it)
  */
-	char *args[3];  /* args for (string) params */
+	char *args[2];  /* args for (string) params */
 };
 
 /**
@@ -63,40 +63,49 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 int main(int argc, char **argv)
 {
 	/* Initialisation */
-	int s; /* SOCKET */
-	unsigned int filter_ids[1]; /* kernel filter ids */
-	int64_t val; /* return val */
-	struct can_frame frame ;
-
 	struct arguments arguments; /* stores argp args */
-	const struct argp argp = { /* argp - The ARGP structure itself */
+	struct argp argp = { /* argp - The ARGP structure itself */
 		options, /* options */
 		parse_opt, /* callback function to process args */
 		args_doc, /* names of parameters */
 		doc /* documentation containing general program description */
 	};
+	int s; /* SOCKET */
+	unsigned int filter_ids[1]; /* kernel filter ids */
+	long int frame_id; struct can_frame frame;
+	double val;
+	
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
+	frame_id = strtol(arguments.args[1], NULL, 0);
 
 	/* Main functionality */
 	can_interact_init(&s, arguments.args[0]);
 	filter_ids[0] = (unsigned)strtol(arguments.args[1], NULL, 0); /* gps accel */
 	can_interact_filter(filter_ids, 1, &s);
 
-	fprintf(stdout, "attempted read from frame 0x%x from can device %s\n", (unsigned)strtol(arguments.args[1], NULL, 0), arguments.args[0]);
+	fprintf(stdout, "attempted read from frame 0x%x from can device %s\n", (unsigned int)frame_id, arguments.args[0]);
 
-	if(can_interact_get_frame(&frame, &s) != 0) {
-		fprintf(stderr, "Error reading from CAN bus\n");
-		abort();
+	while (1) {
+		if (can_interact_get_frame(&frame, &s) != 0) {
+			fprintf(stderr, "Error reading from CAN bus\n");
+			abort();
+		}
+
+		if (frame.can_id == frame_id) {
+			can_interact_decode(
+				frame.data,
+				frame.can_dlc,
+				DATA_TYPE_SIGNED,
+				ENDIAN_BIG,
+				&val
+			);
+			fprintf(stdout, "val read from frame with id 0x%x: %f\n", (unsigned int)frame_id, val);
+		} else {
+			fprintf(stderr, "Warning: kernel filtering not setup\n");
+		}
 	}
 
-	if(frame.can_id == strtol(arguments.args[1], NULL, 0)) {
-		val = (int64_t)can_interact_decode(frame.data, frame.can_dlc, DATA_TYPE_SIGNED, ENDIAN_BIG);
-		fprintf(stdout, "val read from frame with id 0x%x: %ld\n", (unsigned)strtol(arguments.args[1], NULL, 0), val);
-	} else {
-		fprintf(stderr, "Warning: kernel filtering not setup\n");
-	}
-
-    /* E(nd)O(f)P(rogram) */
-    close(s);
-    return 0;
+	/* E(nd)O(f)P(rogram) */
+	close(s);
+	return 0;
 }

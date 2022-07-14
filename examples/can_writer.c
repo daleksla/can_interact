@@ -42,15 +42,13 @@
 
         switch (key) {
             case ARGP_KEY_ARG:
-                if (state->arg_num >= 3)
-                {
+                if (state->arg_num >= 3) {
                     argp_usage(state);
                 }
                 arguments->args[state->arg_num] = arg;
                 break;
             case ARGP_KEY_END:
-                if (state->arg_num < 3)
-                {
+                if (state->arg_num < 3) {
                     argp_usage(state);
                 }
                 break;
@@ -73,23 +71,29 @@ int main(int argc, char** argv)
 		doc /* documentation containing general program description */
 	};
 	int s;
-	uint8_t bytes[8] = {0};
-	uint8_t bytes_used;
-	long int frame_id;
-	struct can_frame frame;
+	uint8_t bytes[8] = {0}; uint8_t bytes_used;
+	long int frame_id; struct can_frame frame;
+	double val;
+
+	argp_parse(&argp, argc, argv, 0, 0, &arguments);
+	frame_id = strtol(arguments.args[1], NULL, 0);
+	val = atof(arguments.args[2]);
 
 	/* Main functionality */
-	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 	can_interact_init(&s, arguments.args[0]);
-	bytes_used = can_interact_encode((uint64_t)strtol(arguments.args[2], NULL, 0), bytes, DATA_TYPE_SIGNED, ENDIAN_BIG);
+	bytes_used = can_interact_encode(
+		&val,
+		DATA_TYPE_SIGNED,
+		ENDIAN_BIG,
+		bytes
+	);
 
-	frame_id = (int64_t)strtol(arguments.args[1], NULL, 0);
-	can_interact_make_frame((canid_t)strtol(arguments.args[1], NULL, 0), bytes, bytes_used, &frame);
+	can_interact_make_frame((canid_t)frame_id, bytes, bytes_used, &frame);
 
 	if (can_interact_send_frame(&frame, &s) != 0) {
-		fprintf(stderr, "Error writing value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), (unsigned int)frame_id, arguments.args[0]);
+		fprintf(stderr, "Error writing value %f in frame with id 0x%x to %s\n", val, (unsigned int)frame_id, arguments.args[0]);
 	} else {
-		fprintf(stdout, "Successfully sent value %ld in frame with id 0x%x to %s\n", (int64_t)strtol(arguments.args[2], NULL, 0), (unsigned int)frame_id, arguments.args[0]);
+		fprintf(stdout, "Successfully sent value %f in frame with id 0x%x to %s\n", val, (unsigned int)frame_id, arguments.args[0]);
 	}
 
 	/* E(nd)O(f)P(rogram) */
