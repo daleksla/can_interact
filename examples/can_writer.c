@@ -10,8 +10,8 @@
 #include "can_interact.h" /* functionality containing both code to read and write from socket */
 
 /**
-  * @brief Example source code of writing to CAN using can_interact functionality
-  */
+ * @brief Example source code of writing to CAN using can_interact functionality
+ */
 
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers" /* Below is some argp stuff. I'm ignoring some of the 'errors' */
 #pragma GCC diagnostic push
