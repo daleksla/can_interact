@@ -106,6 +106,6 @@ int main(int argc, char **argv)
 	}
 
 	/* E(nd)O(f)P(rogram) */
-	close(s);
+	can_interact_fini(&s);
 	return 0;
 }

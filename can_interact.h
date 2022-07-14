@@ -147,6 +147,16 @@ int can_interact_make_frame(const canid_t frame_id, const uint8_t *bytes, const 
  */
 int can_interact_send_frame(const struct can_frame *frame, const int *socket);
 
+/**
+ * @brief can_interact_fini - frees CAN connection
+ *
+ * @param[in] const int* - pointer to varibale to initialise as socket descriptor
+ *
+ * @return int - error code
+ * Note: 0 on success, 1 unable to open socket, 2 upon failure to bind to given device
+ */
+int can_interact_fini(const int *socket);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

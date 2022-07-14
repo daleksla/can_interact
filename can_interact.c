@@ -193,3 +193,8 @@ int can_interact_send_frame(const struct can_frame* can_frame, const int* socket
 {
 	return (write(*socket, can_frame, sizeof(struct can_frame)) != sizeof(struct can_frame)); /* 0 = success, 1 = no data reading from CAN */
 }
+
+int can_interact_fini(const int* socket)
+{
+	return close(*socket);
+}
