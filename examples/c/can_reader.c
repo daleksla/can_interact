@@ -1,16 +1,11 @@
 #include <stdio.h> /* io */
-#include <unistd.h> /* syscalls */
 #include <stdlib.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
-
 #include <argp.h>
 
 #include "can_interact.h" /* functionality containing both code to read and write from socket */
 
 /**
- * @brief Example source code of reading from CAN using can_interact functionality
+ * @brief Example source code of reading from CAN using C-style can_interact functionality
  * File would almost certainly need to be modified to read and output select IDs, etc..
  */
 
@@ -60,6 +55,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 	return 0;
 }
 
+#pragma GCC diagnostic pop /* end of argp, so end of repressing weird messages */
+
 int main(int argc, char **argv)
 {
 	/* Initialisation */
@@ -85,24 +82,21 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "attempted read from frame 0x%x from can device %s\n", (unsigned int)frame_id, arguments.args[0]);
 
-	while (1) {
-		if (can_interact_get_frame(&frame, &s) != 0) {
-			fprintf(stderr, "Error reading from CAN bus\n");
-			abort();
-		}
+	if (can_interact_get_frame(&frame, &s) != 0) {
+		fprintf(stderr, "Error reading from CAN bus\n");
+		abort();
+	}
 
-		if (frame.can_id == frame_id) {
-			can_interact_decode(
-				frame.data,
-				frame.can_dlc,
-				DATA_TYPE_SIGNED,
-				ENDIAN_BIG,
-				&val
-			);
-			fprintf(stdout, "val read from frame with id 0x%x: %f\n", (unsigned int)frame_id, val);
-		} else {
-			fprintf(stderr, "Warning: kernel filtering not setup\n");
-		}
+	if (frame.can_id == frame_id) {
+		can_interact_decode(
+			&frame,
+			DATA_TYPE_FLOAT,
+			ENDIAN_LITTLE,
+			&val
+		);
+		fprintf(stdout, "val read from frame with id 0x%x: %f\n", (unsigned int)frame_id, val);
+	} else {
+		fprintf(stderr, "Warning: kernel filtering not setup\n");
 	}
 
 	/* E(nd)O(f)P(rogram) */
