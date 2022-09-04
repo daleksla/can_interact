@@ -92,7 +92,7 @@ int can_interact_get_frame(struct can_frame *frame, const int *socket);
  * @param const enum can_interact_data_type - datatype of provided value to encode
  * DATA_TYPE_SIGNED indicates signed, DATA_TYPE_UNSIGNED indicates unsigned, DATA_TYPE_FLOAT for IEEE754 float
  *
- * @param const enum can_interact_endianness - endianess
+ * @param const enum can_interact_endianness - enum indicating the output byte order
  * ENDIAN_LITTLE is little, ENDIAN_BIG is big
  *
  * @param void* - destination of decoding
@@ -116,7 +116,7 @@ int can_interact_decode(const struct can_frame *frame, const enum can_interact_d
  * @param const enum can_interact_data_type - datatype of provided value to encode
  * DATA_TYPE_SIGNED indicates signed, DATA_TYPE_UNSIGNED indicates unsigned, DATA_TYPE_FLOAT for IEEE754 float / double
  *
- * @param const enum can_interact_endianness - endianess
+ * @param const enum can_interact_endianness - enum indicating the output byte order
  * ENDIAN_LITTLE is little, ENDIAN_BIG is big
  *
  * @param struct can_frame* - pointer to existing LINUX can frame to be initialised
