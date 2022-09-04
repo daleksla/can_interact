@@ -47,6 +47,19 @@ namespace can_interact {
 			CAN(const int) noexcept ;
 
 			/**
+			  * @brief CAN (move constructor) - copies over internal socket ID and nullifies previous
+			  * @param CAN&& - rvalue reference to CAN class object
+			  */
+			CAN(CAN&&) noexcept ;
+
+			/**
+			  * @brief operator= (move assignment) - copies over internal socket ID and nullifies previous
+			  * @param CAN&& - rvalue reference to CAN class object
+			  * @return CAN& - reference to existing CAN object
+			  */
+			CAN& operator=(CAN&&) noexcept ;
+
+			/**
 			  * @brief socket (overload) - getter to return socket being internally maintained
 			  * @return int - socket
 			  */
@@ -111,8 +124,6 @@ namespace can_interact {
 			CAN() noexcept = delete ;
 			CAN(const CAN&) noexcept(false) = delete ;
 			CAN& operator=(const CAN&) noexcept(false) = delete ;
-			CAN(CAN&&) noexcept = default ;
-			CAN& operator=(CAN&&) noexcept = default ;
 	} ;
 
 	// delete general cases, we only want 3 cases: long unsigned, long int, double, implemented below
@@ -234,6 +245,19 @@ can_interact::CAN::CAN(const std::string& device_name) noexcept(false)
 
 can_interact::CAN::CAN(const int socket) noexcept : _socket(socket) {}
 
+can_interact::CAN::CAN(can_interact::CAN&& can) noexcept
+{
+	this->_socket = can._socket ;
+	can._socket = -1 ;
+}
+
+can_interact::CAN& can_interact::CAN::operator=(CAN&& can) noexcept
+{
+	this->_socket = can._socket ;
+	can._socket = -1 ;
+	return *this ;
+}
+
 int can_interact::CAN::socket() noexcept
 {
 	return this->_socket ;
@@ -286,8 +310,11 @@ void can_interact::CAN::frame(const can_frame& frame) const noexcept(false)
 
 can_interact::CAN::~CAN() noexcept
 {
-	errno = 0 ;
-	can_interact_fini(&this->_socket) ;
+	errno = 0 ; // TODO find better way to report (and not report) potential errors
+	if(this->_socket != -1)
+	{
+		can_interact_fini(&this->_socket) ;
+	}
 }
 
 template<>
