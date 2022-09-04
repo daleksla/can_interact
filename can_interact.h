@@ -87,7 +87,7 @@ int can_interact_get_frame(struct can_frame *frame, const int *socket);
 /**
  * @brief can_interact_decode - converts array of length x containing bytes into value
  *
- * @param const uint8_t* - const array of bytes
+ * @param const struct can_frame* - const pointer to can_frame containing message
  *
  * @param const enum can_interact_data_type - datatype of provided value to encode
  * DATA_TYPE_SIGNED indicates signed, DATA_TYPE_UNSIGNED indicates unsigned, DATA_TYPE_FLOAT for IEEE754 float
@@ -95,7 +95,9 @@ int can_interact_get_frame(struct can_frame *frame, const int *socket);
  * @param const enum can_interact_endianness - endianess
  * ENDIAN_LITTLE is little, ENDIAN_BIG is big
  *
- * @param void* - either a pointer to a uint64_t, int64_t or double, depending on the conversion that will occur
+ * @param void* - destination of decoding
+ * Should be a pointer to a uint64_t, int64_t or double, dependant on the conversion that will occur
+ * (i.e. DATA_TYPE_UNSIGNED = uint64_t, DATA_TYPE_SIGNED = int64_t, DATA_TYPE_FLOAT = double)
  *
  * @return int - whether values have been decoded correctly
  * 0 exit code == success, 1 means number of bytes to decode are below 0 / higher than 8, 2 means bytes provided are not 4 / 8 bytes in length when dealing with floating point values
@@ -103,23 +105,24 @@ int can_interact_get_frame(struct can_frame *frame, const int *socket);
 int can_interact_decode(const struct can_frame *frame, const enum can_interact_data_type type, const enum can_interact_endianness endianness, void* dest);
 
 /**
- * @brief can_interact_encode - converts number to an array of hex bytes
+ * @brief can_interact_encode - serialises and packages number into LINUX can_frame structure
+ *
+ * @param const canid_t - ID of to-be-sent CAN frame
  *
  * @param const void* - pointer of value to translate
  *
- * @param const uint8_t - size of data coming in. Note: should be under 8 and length should contain sizeof(val)
+ * @param const uint8_t - size of data coming in
  *
  * @param const enum can_interact_data_type - datatype of provided value to encode
  * DATA_TYPE_SIGNED indicates signed, DATA_TYPE_UNSIGNED indicates unsigned, DATA_TYPE_FLOAT for IEEE754 float / double
- * Note: for obvious reasons, signed and unsigned are encoded in same way
  *
  * @param const enum can_interact_endianness - endianess
  * ENDIAN_LITTLE is little, ENDIAN_BIG is big
  *
- * @param struct can_frame* - LINUX can frame to be setup
+ * @param struct can_frame* - pointer to existing LINUX can frame to be initialised
  *
- * @return uint8_t - number of destination array elements actually used
- * Positive non-zero number <= 8 == success, else failure (indicates value to encode is of a wrong-size (must be 1-8 bytes in length))
+ * @return int - exit code
+ * 0 exit code == success, 1 means number of bytes to decode are invalid (note: should be 4/8 bytes if floating point, 1-8 bytes if (unsigned/signed) integer)
  */
 int can_interact_encode(const canid_t id, const void *value, const uint8_t len, const enum can_interact_data_type type, const enum can_interact_endianness endianness, struct can_frame *frame);
 

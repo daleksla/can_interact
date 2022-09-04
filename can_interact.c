@@ -189,7 +189,21 @@ int can_interact_decode(const struct can_frame* frame, const enum can_interact_d
 	return 0;
 }
 
-static uint8_t _p_can_interact_encode_float(const void* host_number, const uint8_t len, const enum can_interact_endianness byte_order, uint8_t* dest_array)
+/**
+ * @brief _p_can_interact_serialise_float - INTERNAL METHOD. Serialises single and double precision floating point values
+ *
+ * @param const void* - generic pointer to value to either type of float
+ *
+ * @param const uint8_t - unsigned char storing length of float in bytes (where 4 == float, 8 == double)
+ *
+ * @param const enum can_interact_endianness - endianness (order) of resulting bytes
+ *
+ * @param uint8_t* - pointer to byte string to dump serialised bytes into
+ *
+ * @return uint8_t - length / number of resultant bytes used
+ * 1-8 == success, 0 == failure to encode due to incoming value's length issues (ie not 4 or 8 bytes)
+ */
+static uint8_t _p_can_interact_serialise_float(const void* host_number, const uint8_t len, const enum can_interact_endianness byte_order, uint8_t* dest_array)
 {
 	if (len != 4 && len != 8) {
 		return 0;
@@ -213,7 +227,21 @@ static uint8_t _p_can_interact_encode_float(const void* host_number, const uint8
 	return len;
 }
 
-static uint8_t _p_can_interact_encode_ints(const void* host_number, const uint8_t len, const enum can_interact_endianness byte_order, uint8_t* dest_array)
+/**
+ * @brief _p_can_interact_serialise_ints - INTERNAL METHOD. Serialises signed and unsigned integer values
+ *
+ * @param const void* - generic pointer to value to either type of float
+ *
+ * @param const uint8_t - unsigned char storing length of float in bytes (where 4 == float, 8 == double)
+ *
+ * @param const enum can_interact_endianness - endianness (order) of resulting bytes
+ *
+ * @param uint8_t* - pointer to byte string to dump serialised bytes into
+ *
+ * @return uint8_t - length / number of resultant bytes used.
+ * 1-8 == success, 0 == failure to encode due to incoming value's length issues (ie 0 or > 8 bytes)
+ */
+static uint8_t _p_can_interact_serialise_ints(const void* host_number, const uint8_t len, const enum can_interact_endianness byte_order, uint8_t* dest_array)
 {
 	if (len == 0 || len > 8) {
 		return 0;
@@ -242,11 +270,25 @@ static uint8_t _p_can_interact_encode_ints(const void* host_number, const uint8_
 	return len;
 }
 
+/**
+ * @brief _p_can_interact_serialise - INTERNAL METHOD. Serialises incoming values
+ *
+ * @param const void* - generic pointer to value to either type of float
+ *
+ * @param const uint8_t - unsigned char storing length of float in bytes (where 4 == float, 8 == double)
+ *
+ * @param const enum can_interact_endianness - endianness (order) of resulting bytes
+ *
+ * @param uint8_t* - pointer to byte string to dump serialised bytes into
+ *
+ * @return uint8_t - length / number of resultant bytes used.
+ * 1-8 == success, 0 == failure to encode due to incoming value's length issues (if input was float, then due to not 4 or 8 bytes. if input was integralm due to being 0 or >8 bytes)
+ */
 static uint8_t _p_can_interact_serialise(const void* host_number, const uint8_t len, const enum can_interact_data_type data_type, const enum can_interact_endianness byte_order, uint8_t* dest_array)
 {
 	return data_type == DATA_TYPE_FLOAT
-		? _p_can_interact_encode_float(host_number, len, byte_order, dest_array)
-		: _p_can_interact_encode_ints(host_number, len, byte_order, dest_array);
+		? _p_can_interact_serialise_float(host_number, len, byte_order, dest_array)
+		: _p_can_interact_serialise_ints(host_number, len, byte_order, dest_array);
 }
 
 /**
