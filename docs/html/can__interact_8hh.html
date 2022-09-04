@@ -65,7 +65,8 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">can_interact.hh File Reference</div>  </div>
 </div><!--header-->
@@ -77,13 +78,15 @@ $(function() {
 <code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
+<code>#include &lt;errno.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="can__interact_8h_source.html">can_interact.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for can_interact.hh:</div>
 <div class="dyncontent">
 <div class="center"><img src="can__interact_8hh__incl.png" border="0" usemap="#can__interact_8hh" alt=""/></div>
 <map name="can__interact_8hh" id="can__interact_8hh">
-<area shape="rect" title=" " alt="" coords="305,5,427,32"/>
+<area shape="rect" title=" " alt="" coords="405,5,527,32"/>
 <area shape="rect" title=" " alt="" coords="5,80,68,107"/>
 <area shape="rect" title=" " alt="" coords="92,80,184,107"/>
 <area shape="rect" title=" " alt="" coords="209,80,265,107"/>
@@ -91,9 +94,11 @@ Include dependency graph for can_interact.hh:</div>
 <area shape="rect" title=" " alt="" coords="372,80,459,107"/>
 <area shape="rect" title=" " alt="" coords="483,80,553,107"/>
 <area shape="rect" title=" " alt="" coords="578,80,645,107"/>
-<area shape="rect" href="can__interact_8h.html" title=" " alt="" coords="669,80,783,107"/>
-<area shape="rect" title=" " alt="" coords="639,155,714,181"/>
-<area shape="rect" title=" " alt="" coords="739,155,809,181"/>
+<area shape="rect" title=" " alt="" coords="669,80,743,107"/>
+<area shape="rect" title=" " alt="" coords="768,80,836,107"/>
+<area shape="rect" href="can__interact_8h.html" title=" " alt="" coords="861,80,975,107"/>
+<area shape="rect" title=" " alt="" coords="831,155,906,181"/>
+<area shape="rect" title=" " alt="" coords="931,155,1001,181"/>
 </map>
 </div>
 </div>
@@ -138,6 +143,11 @@ Functions</h2></td></tr>
 <tr class="memitem:af22f33d175a6c68e61a4b701ea4fec23"><td class="memTemplParams" colspan="2">template&lt;typename U , typename std::enable_if&lt; std::is_integral&lt; U &gt;::value &amp;&amp;!std::is_signed&lt; U &gt;::value, bool &gt;::type  = true&gt; </td></tr>
 <tr class="memitem:af22f33d175a6c68e61a4b701ea4fec23"><td class="memTemplItemLeft" align="right" valign="top">can_frame&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacecan__interact.html#af22f33d175a6c68e61a4b701ea4fec23">can_interact::encode</a> (const canid_t, const U, const <a class="el" href="can__interact_8h.html#aed56a579a8a69572cda0f45e767548f1">can_interact_endianness</a>) noexcept(false)</td></tr>
 <tr class="separator:af22f33d175a6c68e61a4b701ea4fec23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:ad65a8842cc674e3ddf69355898c0ecbf"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="can__interact_8hh.html#ad65a8842cc674e3ddf69355898c0ecbf">errno</a></td></tr>
+<tr class="separator:ad65a8842cc674e3ddf69355898c0ecbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ad84dc1ae851bd7eaca49ff1f6dacb045"></a>
@@ -213,6 +223,24 @@ template&lt;&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="ad65a8842cc674e3ddf69355898c0ecbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad65a8842cc674e3ddf69355898c0ecbf">&#9670;&nbsp;</a></span>errno</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int errno</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>CXX API (C++11) of <a class="el" href="namespacecan__interact.html">can_interact</a> C library code used to usefully read and write to CAN bus Functionality has been written to provide both functions working with relevant native constructs (i.e. C-style pointers) and suitable STL containers However templating has been used to get rid of unnecessary usage of generic pointers and manual specifications of value types &amp; lengths, as-well as SFINAE. </p>
+<p>Please refer to docstring of native library to understand erroneous possibilities of wrapper functions - decided not to detail too much here as this is a mere wrapper and its behaviour is reliant on native library calls For declarations for the native C library, see <a class="el" href="can__interact_8h.html">can_interact.h</a> </p>
 
 </div>
 </div>
