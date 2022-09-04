@@ -27,7 +27,7 @@ If you are using C++, you may instead opt to use `can_interact.hh`, which acts a
 
 Note you will still need to link with `can_interact.o` as this is a thin wrapper with minimal functionality of their own.
 
-See `examples` directory for how to use library.
+See `docs` for documentation and `examples` directory for practical use of this library.
 
 ***
 

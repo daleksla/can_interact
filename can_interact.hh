@@ -54,7 +54,7 @@ namespace can_interact {
 
 			/**
 			  * @brief socket (overload) - setter to set socket being internally maintained
-			  * @param int - socket for current object to work with
+			  * @param const int - socket for current object to work with
 			  */
 			void socket(const int) noexcept ;
 
